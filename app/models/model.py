@@ -12,6 +12,8 @@ import re
 from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 from collections import OrderedDict
 
+import spacy
+
 def determine_device():
     if torch.cuda.is_available():
         return "cuda"
@@ -20,6 +22,14 @@ def determine_device():
     else:
         return "cpu"
 
+nlp = spacy.load("en_core_web_sm")
+
+def split_sentences(text: str):
+    doc = nlp(text)
+    spacy_sentences = [sent.text for sent in doc.sents]
+    # remove empty strings, strip leading and trailing whitespaces, and remove newlines
+    spacy_sentences = [sent.strip() for sent in spacy_sentences if sent.strip()]
+    return spacy_sentences
 
 class GPT2PPL:
     def __init__(self, device=None, model_id="gpt2"):
@@ -42,7 +52,7 @@ class GPT2PPL:
             label = 1
             return "The Text is written by Human.", label
 
-    def __call__(self, sentence):
+    def __call__(self, text):
         """
         Takes in a sentence split by full stop
         and print the perplexity of the total sentence
@@ -50,51 +60,35 @@ class GPT2PPL:
         split the lines based on full stop and find the perplexity of each sentence and print
         average perplexity
 
-        Burstiness is the max perplexity of each sentence
+        Burstiness is the max perplexity of each sentence.
         """
         results = OrderedDict()
 
-        total_valid_char = re.findall("[a-zA-Z0-9]+", sentence)
+        total_valid_char = re.findall("[a-zA-Z0-9]+", text)
         total_valid_char = sum([len(x) for x in total_valid_char]) # finds len of all the valid characters a sentence
 
         if total_valid_char < 100:
-            return {"status": "Please input more text (min 100 characters)"}, "Please input more text (min 100 characters)"
+            return {"status": "Please input more text (min 100 characters)"}, [0], ["",]
 
-        lines = re.split(r'(?<=[.?!][ \[\(])|(?<=\n)\s*',sentence)
-        lines = list(filter(lambda x: (x is not None) and (len(x) > 0), lines))
+        fulltext_ppl = self.getPPL(text)
+        print(f"Perplexity {fulltext_ppl}")
+        results["Perplexity"] = fulltext_ppl
 
-        ppl = self.getPPL(sentence)
-        print(f"Perplexity {ppl}")
-        results["Perplexity"] = ppl
+        lines = split_sentences(text)
 
-        offset = ""
-        Perplexity_per_line = []
+        ppls = []
         for i, line in enumerate(lines):
-            if re.search("[a-zA-Z0-9]+", line) == None:
-                continue
-            if len(offset) > 0:
-                line = offset + line
-                offset = ""
-            # remove the new line pr space in the first sentence if exists
-            if line[0] == "\n" or line[0] == " ":
-                line = line[1:]
-            if line[-1] == "\n" or line[-1] == " ":
-                line = line[:-1]
-            elif line[-1] == "[" or line[-1] == "(":
-                offset = line[-1]
-                line = line[:-1]
             ppl = self.getPPL(line)
-            Perplexity_per_line.append(ppl)
-        print(f"Perplexity per line {sum(Perplexity_per_line)/len(Perplexity_per_line)}")
-        results["Perplexity per line"] = sum(Perplexity_per_line)/len(Perplexity_per_line)
+            ppls.append(ppl)
 
-        print(f"Burstiness {max(Perplexity_per_line)}")
-        results["Burstiness"] = max(Perplexity_per_line)
+        results["Perplexity per line"] = sum(ppls)/len(ppls)
+
+        results["Burstiness"] = max(ppls)
 
         out, label = self.getResults(results["Perplexity per line"])
         results["label"] = label
 
-        return results, out
+        return results, ppls, lines
 
     def getPPL(self,sentence):
         encodings = self.tokenizer(sentence, return_tensors="pt")

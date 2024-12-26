@@ -47,12 +47,12 @@ async def scan_file(file: UploadFile = File(...)):
         doc = docx.Document(file_location)
         text = "\n".join([p.text for p in doc.paragraphs])
 
-    result, out = model(text)
+    result, ppls, sentences = model(text)
 
     # Here, you would pass the text to your GPTZero model
     # For now, return dummy output
     analysis = {"status": "processed", "text_length": len(text),
-        "raw_text": text, "result": result, "output": out}
+        "raw_text": text, "result": result, "output": ppls}
 
     # Clean up temporary file
     os.remove(file_location)
@@ -64,6 +64,9 @@ async def scan_text(request: Request):
     data = await request.json()
     text = data.get("text", "")
 
-    result, out = model(text)
-    return {"status": "processed", "text_length": len(text), "raw_text": text,
-        "result": result, "output": out}
+    result, ppls, sentences = model(text)
+    return {"status": "OK",
+        "text_length": len(text),
+        "result": result,
+        "parsed_ppls": ppls,
+        "parsed_sentences": sentences}
