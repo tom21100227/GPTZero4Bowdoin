@@ -116,7 +116,14 @@
                     <input type="file" id="fileInput" name="file" required />
                     <button type="submit">Upload</button>
                 </form>
-                <div id="fileResult" class="result"></div>
+                <div id="fileResult" class="result">
+                    <img
+                        id="fileSpinner"
+                        src="static/loading.gif"
+                        alt="Loading..."
+                        style="display: none; margin: auto"
+                    />
+                </div>
             </section>
 
             <section>
@@ -130,7 +137,14 @@
                     ></textarea>
                     <button type="submit">Submit</button>
                 </form>
-                <div id="textResult" class="result"></div>
+                <div id="textResult" class="result">
+                    <img
+                        id="textSpinner"
+                        src="static/loading.gif"
+                        alt="Loading..."
+                        style="display: none; margin: auto"
+                    />
+                </div>
             </section>
         </main>
 
@@ -165,20 +179,34 @@
                 .getElementById("uploadForm")
                 .addEventListener("submit", async function (event) {
                     event.preventDefault();
+
                     const fileInput = document.getElementById("fileInput");
                     const file = fileInput.files[0];
 
                     const formData = new FormData();
                     formData.append("file", file);
 
+                    // Show the spinner
+                    document.getElementById("fileSpinner").style.display =
+                        "block";
+
+                    const fileResultDiv = document.getElementById("fileResult");
+                    Array.from(fileResultDiv.children).forEach((child) => {
+                        if (child !== fileSpinner) {
+                            fileResultDiv.removeChild(child);
+                        }
+                    });
+
                     const response = await fetch("/scan/file/", {
                         method: "POST",
                         body: formData,
                     });
 
+                    // Hide the spinner
+                    document.getElementById("fileSpinner").style.display =
+                        "none";
+
                     const result = await response.json();
-                    const fileResultDiv = document.getElementById("fileResult");
-                    fileResultDiv.innerHTML = "";
 
                     const {
                         Perplexity,
@@ -204,6 +232,16 @@
                     const textInput =
                         document.getElementById("textInput").value;
 
+                    // Show the spinner
+                    document.getElementById("textSpinner").style.display =
+                        "block";
+                    const textResultDiv = document.getElementById("textResult");
+                    Array.from(textResultDiv.children).forEach((child) => {
+                        if (child !== textSpinner) {
+                            textResultDiv.removeChild(child);
+                        }
+                    });
+
                     const response = await fetch("/scan/text/", {
                         method: "POST",
                         headers: {
@@ -212,9 +250,11 @@
                         body: JSON.stringify({ text: textInput }),
                     });
 
+                    // Hide the spinner
+                    document.getElementById("textSpinner").style.display =
+                        "none";
+
                     const result = await response.json();
-                    const textResultDiv = document.getElementById("textResult");
-                    textResultDiv.innerHTML = "";
 
                     const {
                         Perplexity,

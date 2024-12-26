@@ -28,7 +28,6 @@ async def status():
 
 @app.post("/scan/file/")
 async def scan_file(file: UploadFile = File(...)):
-
     if not os.path.exists("temp"):
         os.makedirs("temp")
 
