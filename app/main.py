@@ -51,8 +51,11 @@ async def scan_file(file: UploadFile = File(...)):
 
     # Here, you would pass the text to your GPTZero model
     # For now, return dummy output
-    analysis = {"status": "processed", "text_length": len(text),
-        "raw_text": text, "result": result, "output": ppls}
+    analysis = {"status": "OK",
+        "text_length": len(text),
+        "result": result,
+        "parsed_ppls": ppls,
+        "parsed_sentences": sentences}
 
     # Clean up temporary file
     os.remove(file_location)
@@ -65,8 +68,10 @@ async def scan_text(request: Request):
     text = data.get("text", "")
 
     result, ppls, sentences = model(text)
-    return {"status": "OK",
+
+    analysis = {"status": "OK",
         "text_length": len(text),
         "result": result,
         "parsed_ppls": ppls,
         "parsed_sentences": sentences}
+    return JSONResponse(content=analysis)
