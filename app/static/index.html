@@ -65,6 +65,43 @@
                 max-width: 90%;
                 overflow: auto;
             }
+            .bar {
+                display: flex;
+                flex-direction: column;
+                margin: 0.5rem 0;
+            }
+            .bar span {
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+            }
+            .bar div {
+                flex-grow: 1;
+                height: 20px;
+                border-radius: 5px;
+                overflow: hidden;
+                position: relative;
+            }
+            .bar-container {
+                margin: 10px 0;
+            }
+
+            .bar-background {
+                background: rgba(
+                    200,
+                    200,
+                    200,
+                    0.5
+                ); /* Transparent grey background */
+                padding: 5px; /* Padding to create the outline effect */
+                border-radius: 5px; /* Optional: to make the corners rounded */
+                position: relative;
+            }
+
+            .bar-background > div {
+                height: 20px; /* Adjust the height of the bar */
+                border-radius: 5px; /* Optional: to make the corners rounded */
+                box-sizing: border-box;
+            }
         </style>
     </head>
     <body>
@@ -98,6 +135,32 @@
         </main>
 
         <script>
+            function createBar(label, value) {
+                const barContainer = document.createElement("div");
+                barContainer.classList.add("bar");
+
+                const labelSpan = document.createElement("span");
+                labelSpan.textContent = `${label}: ${value.toFixed(2)}`;
+                barContainer.appendChild(labelSpan);
+
+                const barBackground = document.createElement("div");
+                barBackground.classList.add("bar-background");
+                const bar = document.createElement("div");
+                const clampedValue = Math.min(value, 120);
+                bar.style.width = `${(clampedValue / 120) * 100}%`;
+
+                if (value < 60) {
+                    bar.style.background = "#F47174";
+                } else if (value < 80) {
+                    bar.style.background = "#ff8c00";
+                } else {
+                    bar.style.background = "#669933";
+                }
+                barBackground.appendChild(bar);
+                barContainer.appendChild(barBackground);
+                return barContainer;
+            }
+
             document
                 .getElementById("uploadForm")
                 .addEventListener("submit", async function (event) {
@@ -114,8 +177,24 @@
                     });
 
                     const result = await response.json();
-                    document.getElementById("fileResult").innerText =
-                        JSON.stringify(result, null, 2);
+                    const fileResultDiv = document.getElementById("fileResult");
+                    fileResultDiv.innerHTML = "";
+
+                    const {
+                        Perplexity,
+                        "Perplexity per line": PerplexityPerLine,
+                        Burstiness,
+                    } = result.result;
+
+                    fileResultDiv.appendChild(
+                        createBar("Perplexity", Perplexity),
+                    );
+                    fileResultDiv.appendChild(
+                        createBar("Perplexity per line", PerplexityPerLine),
+                    );
+                    fileResultDiv.appendChild(
+                        createBar("Burstiness", Burstiness),
+                    );
                 });
 
             document
@@ -134,8 +213,24 @@
                     });
 
                     const result = await response.json();
-                    document.getElementById("textResult").innerText =
-                        JSON.stringify(result, null, 2);
+                    const textResultDiv = document.getElementById("textResult");
+                    textResultDiv.innerHTML = "";
+
+                    const {
+                        Perplexity,
+                        "Perplexity per line": PerplexityPerLine,
+                        Burstiness,
+                    } = result.result;
+
+                    textResultDiv.appendChild(
+                        createBar("Perplexity", Perplexity),
+                    );
+                    textResultDiv.appendChild(
+                        createBar("Perplexity per line", PerplexityPerLine),
+                    );
+                    textResultDiv.appendChild(
+                        createBar("Burstiness", Burstiness),
+                    );
                 });
         </script>
     </body>
