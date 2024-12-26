@@ -8,6 +8,8 @@ Still very much a work in progress.
 - [ ] Update the model to support longer context window.
 - [ ] Make UI more user-friendly
 
+---
+
 GPTZero is an AI model with some mathematical formulation to determine if a particular text fed to it is written by AI or a human being.
 
 ## The motivation for it

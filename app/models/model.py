@@ -100,7 +100,7 @@ class GPT2PPL:
         encodings = self.tokenizer(sentence, return_tensors="pt")
         seq_len = encodings.input_ids.size(1)
 
-        nlls = []
+        nlls = [] # negative log likelihoods
         likelihoods = []
         prev_end_loc = 0
         for begin_loc in range(0, seq_len, self.stride):
