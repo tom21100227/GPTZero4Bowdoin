@@ -4,21 +4,98 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>GPTZero for Bowdoin</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+            }
+            header {
+                background: #333;
+                color: #fff;
+                padding: 1rem 0;
+                text-align: center;
+            }
+            h1 {
+                margin: 0;
+                color: white;
+            }
+            h2 {
+                color: #333;
+            }
+            h2 {
+                margin-top: 2rem;
+                margin-left: 1rem;
+            }
+            form {
+                background: #fff;
+                margin: 2rem auto;
+                padding: 1rem;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                max-width: 90%;
+            }
+            input,
+            textarea,
+            button {
+                display: block;
+                width: 100%;
+                margin: 0.5rem 0;
+                padding: 0.5rem;
+                font-size: 1rem;
+            }
+            button {
+                background: #333;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                border-radius: 3px;
+                transition: background 0.3s;
+            }
+            button:hover {
+                background: #555;
+            }
+            .result {
+                background: #e2e2e2;
+                margin: 2rem auto;
+                padding: 1rem;
+                border-radius: 5px;
+                max-width: 90%;
+                overflow: auto;
+            }
+        </style>
     </head>
     <body>
-        <h1>Upload a File</h1>
-        <form id="uploadForm">
-            <input type="file" id="fileInput" name="file" required />
-            <button type="submit">Upload</button>
-        </form>
-        <div id="fileResult"></div>
+        <header>
+            <h1>GPTZero for Bowdoin</h1>
+        </header>
 
-        <h1>Submit Text</h1>
-        <form id="textForm">
-            <textarea id="textInput" name="text" required></textarea>
-            <button type="submit">Submit</button>
-        </form>
-        <div id="textResult"></div>
+        <main>
+            <section>
+                <h2>Upload a File</h2>
+                <form id="uploadForm">
+                    <input type="file" id="fileInput" name="file" required />
+                    <button type="submit">Upload</button>
+                </form>
+                <div id="fileResult" class="result"></div>
+            </section>
+
+            <section>
+                <h2>Submit Text</h2>
+                <form id="textForm">
+                    <textarea
+                        id="textInput"
+                        name="text"
+                        rows="5"
+                        required
+                    ></textarea>
+                    <button type="submit">Submit</button>
+                </form>
+                <div id="textResult" class="result"></div>
+            </section>
+        </main>
 
         <script>
             document
