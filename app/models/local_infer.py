@@ -10,7 +10,7 @@ by Burhan Ul tayyab and Nicholas Chua
 from model import GPT2PPL
 
 # initialize the model
-model = GPT2PPL()
+model = GPT2PPL(device='mps')
 
 print("Please enter your sentence: (Press Enter twice to start processing)")
 contents = []
@@ -21,4 +21,7 @@ while True:
     contents.append(line)
 sentence = "\n".join(contents)
 
-model(sentence)
+result, out = model(sentence)
+
+print(f"Result: {result}")
+print(f"Output: {out}")

@@ -12,17 +12,25 @@ import re
 from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 from collections import OrderedDict
 
+def determine_device():
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        return "mps"
+    else:
+        return "cpu"
+
 
 class GPT2PPL:
-    def __init__(self, device="cuda", model_id="gpt2"):
-        self.device = device
+    def __init__(self, device=None, model_id="gpt2"):
+        self.device = device if device is not None else determine_device()
         self.model_id = model_id
         self.model = GPT2LMHeadModel.from_pretrained(model_id).to(device)
         self.tokenizer = GPT2TokenizerFast.from_pretrained(model_id)
 
         self.max_length = self.model.config.n_positions
         self.stride = 512
-        
+
     def getResults(self, threshold):
         if threshold < 60:
             label = 0
@@ -51,7 +59,7 @@ class GPT2PPL:
 
         if total_valid_char < 100:
             return {"status": "Please input more text (min 100 characters)"}, "Please input more text (min 100 characters)"
-        
+
         lines = re.split(r'(?<=[.?!][ \[\(])|(?<=\n)\s*',sentence)
         lines = list(filter(lambda x: (x is not None) and (len(x) > 0), lines))
 
