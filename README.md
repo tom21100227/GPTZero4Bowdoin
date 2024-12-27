@@ -6,8 +6,10 @@ Still very much a work in progress.
 
 - [x] Line-by-line analysis of text
 - [x] Make UI more user-friendly
+- [ ] Add PDF support
 - [ ] Update the model to support longer context window.
 - [ ] Add more explaination to what is happening. (eh)
+- [ ] Add cool animations (eh)
 
 ---
 
