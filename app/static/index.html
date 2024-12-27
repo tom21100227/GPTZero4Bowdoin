@@ -4,146 +4,87 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>GPTZero for Bowdoin</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            defer
+        ></script>
         <style>
-            body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                background-color: #f4f4f4;
-                margin: 0;
-                padding: 0;
-            }
-            header {
-                background: #333;
-                color: #fff;
-                padding: 1rem 0;
-                text-align: center;
-            }
-            h1 {
-                margin: 0;
-                color: white;
-            }
-            h2 {
-                color: #333;
-            }
-            h2 {
-                margin-top: 2rem;
-                margin-left: 1rem;
-            }
-            form {
-                background: #fff;
-                margin: 2rem auto;
-                padding: 1rem;
+            .bar-background {
+                background: rgba(200, 200, 200, 0.5);
                 border-radius: 5px;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                max-width: 90%;
+                padding: 5px;
+                position: relative;
+                margin-bottom: 1rem;
             }
-            input,
-            textarea,
-            button {
-                display: block;
-                width: 100%;
-                margin: 0.5rem 0;
-                padding: 0.5rem;
-                font-size: 1rem;
-            }
-            button {
-                background: #333;
-                color: #fff;
-                border: none;
-                cursor: pointer;
-                border-radius: 3px;
-                transition: background 0.3s;
-            }
-            button:hover {
-                background: #555;
-            }
-            .result {
-                background: #e2e2e2;
-                margin: 2rem auto;
-                padding: 1rem;
-                border-radius: 5px;
-                max-width: 90%;
-                overflow: auto;
-            }
-            .bar {
-                display: flex;
-                flex-direction: column;
-                margin: 0.5rem 0;
-            }
-            .bar span {
-                font-weight: bold;
-                margin-bottom: 0.5rem;
-            }
-            .bar div {
-                flex-grow: 1;
+            .bar-background > div {
                 height: 20px;
                 border-radius: 5px;
-                overflow: hidden;
-                position: relative;
-            }
-            .bar-container {
-                margin: 10px 0;
-            }
-
-            .bar-background {
-                background: rgba(
-                    200,
-                    200,
-                    200,
-                    0.5
-                ); /* Transparent grey background */
-                padding: 5px; /* Padding to create the outline effect */
-                border-radius: 5px; /* Optional: to make the corners rounded */
-                position: relative;
-            }
-
-            .bar-background > div {
-                height: 20px; /* Adjust the height of the bar */
-                border-radius: 5px; /* Optional: to make the corners rounded */
                 box-sizing: border-box;
+            }
+            .spinner-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+            }
+            .drop-zone {
+                border: 2px dashed #6c757d;
+                border-radius: 5px;
+                padding: 20px;
+                text-align: center;
+                cursor: pointer;
+                background-color: #f8f9fa;
+            }
+            .drop-zone.dragover {
+                background-color: #e9ecef;
             }
         </style>
     </head>
-    <body>
-        <header>
-            <h1>GPTZero for Bowdoin</h1>
+    <body class="bg-light">
+        <header class="bg-dark text-white text-center py-3">
+            <h1 class="m-0">GPTZero for Bowdoin</h1>
         </header>
 
-        <main>
+        <main class="container mt-4">
             <section>
-                <h2>Upload a File</h2>
-                <form id="uploadForm">
-                    <input type="file" id="fileInput" name="file" required />
-                    <button type="submit">Upload</button>
-                </form>
-                <div id="fileResult" class="result">
-                    <img
-                        id="fileSpinner"
-                        src="static/loading.gif"
-                        alt="Loading..."
-                        style="display: none; margin: auto"
+                <h2 class="text-primary">Submit File or Text</h2>
+                <form id="mainForm" class="mb-4">
+                    <div
+                        id="dropZone"
+                        class="drop-zone mb-3"
+                        ondragover="event.preventDefault()"
+                        ondrop="handleDrop(event)"
+                        onclick="document.getElementById('fileInput').click()"
+                    >
+                        Drag and drop a file here or write your text below.
+                    </div>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        style="display: none"
+                        onchange="handleFileSelect(event)"
                     />
-                </div>
-            </section>
-
-            <section>
-                <h2>Submit Text</h2>
-                <form id="textForm">
-                    <textarea
-                        id="textInput"
-                        name="text"
-                        rows="5"
-                        required
-                    ></textarea>
-                    <button type="submit">Submit</button>
+                    <div class="mb-3">
+                        <textarea
+                            id="textInput"
+                            name="text"
+                            rows="5"
+                            class="form-control"
+                            placeholder="Write your text here..."
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        Submit
+                    </button>
                 </form>
-                <div id="textResult" class="result">
-                    <img
-                        id="textSpinner"
-                        src="static/loading.gif"
-                        alt="Loading..."
-                        style="display: none; margin: auto"
-                    />
+                <div id="result" class="p-3 bg-white shadow-sm">
+                    <div id="spinner" class="spinner-container d-none">
+                        <img src="static/loading.gif" alt="Loading..." />
+                    </div>
                 </div>
             </section>
         </main>
@@ -151,7 +92,7 @@
         <script>
             function createBar(label, value) {
                 const barContainer = document.createElement("div");
-                barContainer.classList.add("bar");
+                barContainer.classList.add("mb-3");
 
                 const labelSpan = document.createElement("span");
                 labelSpan.textContent = `${label}: ${value.toFixed(2)}`;
@@ -175,102 +116,103 @@
                 return barContainer;
             }
 
-            document
-                .getElementById("uploadForm")
-                .addEventListener("submit", async function (event) {
-                    event.preventDefault();
+            async function handleDrop(event) {
+                event.preventDefault();
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            }
 
-                    const fileInput = document.getElementById("fileInput");
-                    const file = fileInput.files[0];
+            async function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    handleFileUpload(file);
+                }
+            }
 
-                    const formData = new FormData();
-                    formData.append("file", file);
+            async function handleFileUpload(file) {
+                const formData = new FormData();
+                formData.append("file", file);
 
-                    // Show the spinner
-                    document.getElementById("fileSpinner").style.display =
-                        "block";
+                document.getElementById("spinner").classList.remove("d-none");
 
-                    const fileResultDiv = document.getElementById("fileResult");
-                    Array.from(fileResultDiv.children).forEach((child) => {
-                        if (child !== fileSpinner) {
-                            fileResultDiv.removeChild(child);
-                        }
-                    });
-
-                    const response = await fetch("/scan/file/", {
-                        method: "POST",
-                        body: formData,
-                    });
-
-                    // Hide the spinner
-                    document.getElementById("fileSpinner").style.display =
-                        "none";
-
-                    const result = await response.json();
-
-                    const {
-                        Perplexity,
-                        "Perplexity per line": PerplexityPerLine,
-                        Burstiness,
-                    } = result.result;
-
-                    fileResultDiv.appendChild(
-                        createBar("Perplexity", Perplexity),
-                    );
-                    fileResultDiv.appendChild(
-                        createBar("Perplexity per line", PerplexityPerLine),
-                    );
-                    fileResultDiv.appendChild(
-                        createBar("Burstiness", Burstiness),
-                    );
+                const resultDiv = document.getElementById("result");
+                Array.from(resultDiv.children).forEach((child) => {
+                    if (child !== document.getElementById("spinner")) {
+                        resultDiv.removeChild(child);
+                    }
                 });
 
+                const response = await fetch("/scan/file/", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                document.getElementById("spinner").classList.add("d-none");
+
+                const result = await response.json();
+                const {
+                    Perplexity,
+                    "Perplexity per line": PerplexityPerLine,
+                    Burstiness,
+                } = result.result;
+
+                resultDiv.appendChild(createBar("Perplexity", Perplexity));
+                resultDiv.appendChild(
+                    createBar("Perplexity per line", PerplexityPerLine),
+                );
+                resultDiv.appendChild(createBar("Burstiness", Burstiness));
+            }
+
             document
-                .getElementById("textForm")
+                .getElementById("mainForm")
                 .addEventListener("submit", async function (event) {
                     event.preventDefault();
+
                     const textInput =
                         document.getElementById("textInput").value;
+                    if (textInput.trim()) {
+                        document
+                            .getElementById("spinner")
+                            .classList.remove("d-none");
 
-                    // Show the spinner
-                    document.getElementById("textSpinner").style.display =
-                        "block";
-                    const textResultDiv = document.getElementById("textResult");
-                    Array.from(textResultDiv.children).forEach((child) => {
-                        if (child !== textSpinner) {
-                            textResultDiv.removeChild(child);
-                        }
-                    });
+                        const resultDiv = document.getElementById("result");
+                        Array.from(resultDiv.children).forEach((child) => {
+                            if (child !== document.getElementById("spinner")) {
+                                resultDiv.removeChild(child);
+                            }
+                        });
 
-                    const response = await fetch("/scan/text/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ text: textInput }),
-                    });
+                        const response = await fetch("/scan/text/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ text: textInput }),
+                        });
 
-                    // Hide the spinner
-                    document.getElementById("textSpinner").style.display =
-                        "none";
+                        document
+                            .getElementById("spinner")
+                            .classList.add("d-none");
 
-                    const result = await response.json();
+                        const result = await response.json();
+                        const {
+                            Perplexity,
+                            "Perplexity per line": PerplexityPerLine,
+                            Burstiness,
+                        } = result.result;
 
-                    const {
-                        Perplexity,
-                        "Perplexity per line": PerplexityPerLine,
-                        Burstiness,
-                    } = result.result;
-
-                    textResultDiv.appendChild(
-                        createBar("Perplexity", Perplexity),
-                    );
-                    textResultDiv.appendChild(
-                        createBar("Perplexity per line", PerplexityPerLine),
-                    );
-                    textResultDiv.appendChild(
-                        createBar("Burstiness", Burstiness),
-                    );
+                        resultDiv.appendChild(
+                            createBar("Perplexity", Perplexity),
+                        );
+                        resultDiv.appendChild(
+                            createBar("Perplexity per line", PerplexityPerLine),
+                        );
+                        resultDiv.appendChild(
+                            createBar("Burstiness", Burstiness),
+                        );
+                    }
                 });
         </script>
     </body>
