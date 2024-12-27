@@ -19,18 +19,36 @@
                 padding: 5px;
                 position: relative;
                 margin-bottom: 1rem;
+                overflow: hidden;
+                opacity: 0;
+                transform: translateX(-100%) translateY(-20%);
+                animation: revealBar 1s forwards;
             }
+
             .bar-background > div {
                 height: 20px;
                 border-radius: 5px;
                 box-sizing: border-box;
             }
+
+            @keyframes revealBar {
+                0% {
+                    opacity: 0;
+                    transform: translateX(-100%) translateY(-20%);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateX(0) translateY(0);
+                }
+            }
+
             .spinner-container {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 height: 100%;
             }
+
             .drop-zone {
                 border: 2px dashed #6c757d;
                 border-radius: 5px;
@@ -39,8 +57,40 @@
                 cursor: pointer;
                 background-color: #f8f9fa;
             }
+
             .drop-zone.dragover {
                 background-color: #e9ecef;
+            }
+
+            .sentence-breakdown {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                font-family: monospace;
+            }
+
+            .sentence-text {
+                width: 70%;
+                text-align: left;
+            }
+
+            .sentence-bar {
+                width: 30%;
+                text-align: right;
+            }
+
+            .sentence-explanation {
+                font-size: 0.8rem;
+                color: #6c757d;
+                text-align: left;
+                margin-bottom: 1rem;
+            }
+
+            .legend {
+                font-size: 0.8rem;
+                color: #6c757d;
+                margin-bottom: 1rem;
             }
         </style>
     </head>
@@ -86,6 +136,10 @@
                         <img src="static/loading.gif" alt="Loading..." />
                     </div>
                 </div>
+                <div
+                    id="sentenceBreakdown"
+                    class="p-3 bg-white shadow-sm mt-3"
+                ></div>
             </section>
         </main>
 
@@ -114,6 +168,74 @@
                 barBackground.appendChild(bar);
                 barContainer.appendChild(barBackground);
                 return barContainer;
+            }
+
+            function createSentenceBreakdown(sentences, perplexities) {
+                const breakdownContainer = document.createElement("div");
+
+                const explanation = document.createElement("div");
+                explanation.classList.add("sentence-explanation");
+                explanation.textContent =
+                    "Note: The paragraph structure are omitted and might not follow your original text,\
+                    because it is parsed by a language model. To learn more, check out spaCy.";
+                breakdownContainer.appendChild(explanation);
+
+                const legend = document.createElement("div");
+                legend.classList.add("legend");
+                legend.innerHTML = `
+                    <strong>Legend:</strong><br>
+                    <span style="color: #F47174;">Red:</span> PPL < 60<br>
+                    <span style="color: #ff8c00;">Orange:</span> 60 ≤ PPL < 80<br>
+                    <span style="color: #669933;">Green:</span> PPL ≥ 80
+                `;
+                breakdownContainer.appendChild(legend);
+
+                sentences.forEach((line, index) => {
+                    const sentenceContainer = document.createElement("div");
+                    sentenceContainer.classList.add("sentence-breakdown");
+
+                    const sentenceText = document.createElement("div");
+                    sentenceText.classList.add("sentence-text");
+                    sentenceText.textContent = line;
+
+                    const value = perplexities[index];
+                    if (value < 60) {
+                        sentenceText.style.backgroundColor = "#ff8c00"; // Orange
+                    } else if (value < 80) {
+                        sentenceText.style.backgroundColor = "#ffff00"; // Yellow
+                    }
+
+                    const sentenceBar = document.createElement("div");
+                    sentenceBar.classList.add("sentence-bar");
+
+                    const barBackground = document.createElement("div");
+                    barBackground.classList.add("bar-background");
+                    const bar = document.createElement("div");
+                    const clampedValue = Math.min(value, 120);
+                    bar.style.width = `${(clampedValue / 120) * 100}%`;
+
+                    if (value < 60) {
+                        bar.style.background = "#F47174";
+                    } else if (value < 80) {
+                        bar.style.background = "#ff8c00";
+                    } else {
+                        bar.style.background = "#669933";
+                    }
+                    barBackground.appendChild(bar);
+                    sentenceBar.appendChild(barBackground);
+
+                    const perplexityValue = document.createElement("div");
+                    perplexityValue.textContent = value.toFixed(2);
+                    perplexityValue.style.marginLeft = "5px";
+                    sentenceBar.appendChild(perplexityValue);
+
+                    sentenceContainer.appendChild(sentenceText);
+                    sentenceContainer.appendChild(sentenceBar);
+
+                    breakdownContainer.appendChild(sentenceContainer);
+                });
+
+                return breakdownContainer;
             }
 
             async function handleDrop(event) {
@@ -158,11 +280,21 @@
                     Burstiness,
                 } = result.result;
 
+                const Sentences = result.parsed_sentences;
+                const PerplexityBreakdown = result.parsed_ppls;
+
                 resultDiv.appendChild(createBar("Perplexity", Perplexity));
                 resultDiv.appendChild(
                     createBar("Perplexity per line", PerplexityPerLine),
                 );
                 resultDiv.appendChild(createBar("Burstiness", Burstiness));
+
+                const breakdownDiv =
+                    document.getElementById("sentenceBreakdown");
+                breakdownDiv.innerHTML = "";
+                breakdownDiv.appendChild(
+                    createSentenceBreakdown(Sentences, PerplexityBreakdown),
+                );
             }
 
             document
@@ -203,6 +335,9 @@
                             Burstiness,
                         } = result.result;
 
+                        const Sentences = result.parsed_sentences;
+                        const PerplexityBreakdown = result.parsed_ppls;
+
                         resultDiv.appendChild(
                             createBar("Perplexity", Perplexity),
                         );
@@ -211,6 +346,16 @@
                         );
                         resultDiv.appendChild(
                             createBar("Burstiness", Burstiness),
+                        );
+
+                        const breakdownDiv =
+                            document.getElementById("sentenceBreakdown");
+                        breakdownDiv.innerHTML = "";
+                        breakdownDiv.appendChild(
+                            createSentenceBreakdown(
+                                Sentences,
+                                PerplexityBreakdown,
+                            ),
                         );
                     }
                 });
