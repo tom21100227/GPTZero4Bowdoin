@@ -2,6 +2,9 @@
 
 Based on [BurhanUlT's repo](https://github.com/BurhanUlTayyab/GPTZero)
 
+https://github.com/user-attachments/assets/e883444b-46e9-4594-b251-b196ee8a8bc0
+
+
 Still very much a work in progress.
 
 - [x] Line-by-line analysis of text
