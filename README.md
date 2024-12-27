@@ -5,8 +5,9 @@ Based on [BurhanUlT's repo](https://github.com/BurhanUlTayyab/GPTZero)
 Still very much a work in progress.
 
 - [x] Line-by-line analysis of text
+- [x] Make UI more user-friendly
 - [ ] Update the model to support longer context window.
-- [ ] Make UI more user-friendly
+- [ ] Add more explaination to what is happening. (eh)
 
 ---
 
